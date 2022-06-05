@@ -26,9 +26,9 @@ AUDIOCARD = "1"
 AUDIODEV = "hw:1,0"
 BASEDIR = Path.home() / "lawaai"
 RECORDING_START = time(22, 0, 0)
-RECORDING_END = time(3, 0, 0)
+RECORDING_END = time(2, 0, 0)
 SAVING_PK_DB = -15.0
-SAVING_RMS_DB = -45.0
+SAVING_RMS_DB = -40.0
 SOX_CMD = "/usr/bin/sox -q -t alsa -d {filename} gain 20 stats trim 0 {runtime}"
 # SOX_CMD =  'AUDIODEV={AUDIODEV} sox -q -t alsa -d {filename} gain 20 stats trim 0 {runtime}'
 
