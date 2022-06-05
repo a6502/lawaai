@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" integrity="sha256-rTpdO0HXBCNpreAHcu6tB2Ppg515Vo+5GtYSsnNLz+8=" crossorigin="anonymous">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="manifest" href="/static/site.webmanifest">
+    <title>{% block title %}{% endblock %} - Lawaai!</title>
+    {% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+    <footer class="footer">
+      <div class="content has-text-centered">
+        {% block footer %}
+        <p>
+        &copy; 2022 by <a href="https://github.com/a6502/lawaai">Wieger Opmeer</a>.
+        </p>
+        {% endblock %}
+      </div>
+    </footer>
+</body>
+</html>

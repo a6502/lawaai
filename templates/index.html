@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js" integrity="sha256-ErZ09KkZnzjpqcane4SCyyHsKAXMvID9/xwbl/Aq1pc=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js" integrity="sha256-DIsAGD2EF8Qq2PCH9yzX/yt9FliJfWf+aGcdgR6tKwo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.1.0/dist/chartjs-adapter-luxon.min.js" integrity="sha256-tOhXNe/Ue+TjR33s/CryFYOGMwNfkTjTuvM4LEOAHzc=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker-bulma.css" integrity="sha256-r9TirNl7v9+6j1jmIvoDhzXOmxj1qdd/+zFwdwYkZys=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker.min.js" integrity="sha256-fj5f46K8qrB6o+BSzoVecO7bcUN3uPya6jpkBTOZjog=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/locales/nl.js"></script>
+{% endblock %}
+{% block title %}Index{% endblock %}
+{% block content %}
+<section class="section">
+<div class="container">
+  <h1 class="title">Lawaai!</h1>
+  <h2 class="subtitle">De herrie van {{vandaag}}</h2>
+</div>
+<div class="container">
+  <div class="chart-container">
+    <canvas id="grafiek"></canvas>
+  </div>
+</div>
+<div class="block">
+</div>
+<div class="container">
+  <div class="columns">
+    <div class="column">
+      <div class="subtitle">Selecteer een andere datum:</div>
+      <div class="field is-horizontal">
+        <div title="Een dag terug" class="control">
+          {% if gisteren %}
+          <a class="button is-info" href="?datum={{gisteren}}">&xlarr;</a>
+          {%else %}
+          <a class="button is-info" disabled>&xlarr;</a>
+          {% endif %}
+        </div>
+        <form>
+          <div class="field has-addons">
+            <div class="control">
+               <input type="text" name="datum" value="{{datum}}" id="datumprikker" class="input is-rounded">
+            </div>
+            <div class="control">
+              <input class="button is-primary is-rounded" type="submit" value="Ga!">
+            </div>
+          </div>
+        </form>
+        <div title="Een dag vooruit" class="control">
+          {% if morgen %}
+          <a class="button is-info" href="?datum={{morgen}}">&xrarr;</a>
+          {%else %}
+          <a class="button is-info" disabled>&xrarr;</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="columm">
+      <p>&nbsp;</p>
+      <div class="subtitle" id="oggtitel">Geselecteerd:</div>
+      <audio id="oggspelert" controls type="audio/ogg" class="is-pulled-right">
+      </audio>
+    </div>
+  </div>
+</div>
+</section>
+<script>
+// grafiek
+const myChartElem = document.getElementById('grafiek')
+const ctx = myChartElem.getContext('2d');
+
+const chartData = {
+  labels: [{% for item in labels %}"{{item}}",{% endfor %}],
+  datasets : [{
+    label: 'max db level',
+    backgroundColor: '#ff0000', // red
+    pointBorderColor: '#ff0000', // red
+    pointStyle: 'dash',
+    showLine: false,
+    data : [{% for item in maxdblvl %}{{item}},{% endfor %}]
+  },{
+    label: 'rms db level',
+    backgroundColor: '#0000ff', // blue
+    pointBorderColor: '#0000ff', // blue
+    pointStyle: 'cross',
+    data : [{% for item in rmsdblvl %}{{item}},{% endfor %}]
+  }]
+}
+
+const saved_oggs = [{% for item in saved %}{{ 'true' if item else 'false' }},{% endfor %}]
+
+const oggtitel = document.getElementById('oggtitel');
+const oggspelert = document.getElementById('oggspelert');
+  
+const myChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+       responsive: true,
+       resizeDelay: 100,
+        scales: {
+           xAxis: {
+              type: "time",
+                  time: { displayFormats: { minute: "HH:mm" } },
+              display: true,
+              scaleLabel: {
+                 display: true,
+                 labelString: "Point"
+              }
+           },
+           yAxis: {
+              display: true,
+              scaleLabel: {
+                 display: true,
+                 labelString: "Value"
+              }
+           }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: false,
+          }
+        },
+        adapters: { 
+            date: {
+                locale: 'nl',
+                //zone: 'UTC+1'
+            },
+        },
+        onClick: event => {
+            const activePoints = myChart.getElementsAtEventForMode(event, 'nearest', {
+              intersect: true
+            }, false)
+            const [{
+              index
+            }] = activePoints;
+            const dt = chartData.labels[index];
+            console.log('chart onClick dt:' + dt);
+            const saved = saved_oggs[index];
+            console.log('chart onClick saved:' + saved);
+            if (!saved) {
+              return;
+            }
+            let newurl = new URL(window.location.href);
+            //console.log('newurl before:' + newurl);
+            newurl.pathname = '/ogg';
+            newurl.search = '';
+            newurl.searchParams.set('datumtijd', dt);
+            console.log('newurl after:' + newurl);
+            //window.location.href = newurl.href;
+            oggtitel.innerHTML = 'Geselecteerd: ' + dt + '.ogg';
+            oggspelert.setAttribute('src', newurl.href);
+            oggspelert.play();
+            //console.log(chartData.datasets[0].data[index]);
+            //console.log(chartData.datasets[1].data[index]);
+        }
+    }
+});
+
+</script>
+<script>
+// datum selectie
+
+
+const dates_allowed = {
+  {% for item in csvs %}"{{item}}": 1, {% endfor %}
+};
+
+const elem = document.getElementById('datumprikker');
+
+const datepicker = new Datepicker(elem, {
+  format: 'yyyy-mm-dd',
+  language: 'nl',
+  todayBtn: true,
+  todayBtnMode: 1,
+  beforeShowDay: function (date) {
+        var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+    var date_str = (new Date(date - tzoffset)).toISOString().split('T')[0]
+    //console.log(date); console.log(date_str)
+
+    if (dates_allowed[date_str]) {
+      return {
+          enabled: true,
+          //content: '<i>foo</i>',
+      };
+    } else {
+      return false;
+    }
+  }
+});
+
+elem.addEventListener('changeDate', function (evt) {
+  console.log(evt.detail); console.log(evt.detail.date);
+});
+
+</script>
+{% endblock %}
