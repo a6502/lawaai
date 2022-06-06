@@ -1,0 +1,22 @@
+[Unit]
+Description=Lawaai Weergave
+After=network.target
+
+[Service]
+Type=simple
+# systemd requires absolute path here too.
+PIDFile=/run/lawaai-weergave.pid
+User=pi
+Group=pi
+ExecStart=/home/pi/lawaai/weergave.py
+ExecStop=/bin/kill -TERM $MAINPID
+#ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+WorkingDirectory=/home/pi/lawaai
+Environment=PYTHONUNBUFFERED=1
+
+TimeoutStartSec=3
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

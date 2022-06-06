@@ -1,0 +1,22 @@
+[Unit]
+Description=Lawaai Meter
+After=network.target
+
+[Service]
+Type=simple
+# systemd requires absolute path here too.
+PIDFile=/run/lawaai.pid
+User=pi
+Group=pi
+ExecStart=/home/pi/lawaai/meter.py
+ExecStop=/bin/kill -TERM $MAINPID
+#ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+WorkingDirectory=/home/pi/lawaai
+Environment=PYTHONUNBUFFERED=1
+
+TimeoutStartSec=3
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
