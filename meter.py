@@ -76,6 +76,10 @@ try:
         # calculcate seconds till top of next minute
         next_minute = (now + a_minute).replace(microsecond=0, second=0)
         runtime = (next_minute - now).total_seconds()
+        if runtime < 1.0: # or 3?
+            print(f"runtime {runtime}, sleeping instead")
+            sleep(runtime)
+            continue
 
         cmd = SOX_CMD.format(filename=ogg_file, runtime=runtime).split()
         print(cmd)
